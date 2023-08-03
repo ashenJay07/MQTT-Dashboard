@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -17,8 +18,8 @@ export default function Home() {
   const [keywords, setKeywords] = useState([]);
   const [publishTopic, setPublishTopic] = useState("");
   const [publishMessage, setPublishMessage] = useState("");
+  const [subscriptionTopic, setSubscriptionTopic] = useState("");
 
-  const [mqttService, setMqttService] = useState(null);
 
   const notify = (msg) => {};
 
@@ -117,6 +118,8 @@ export default function Home() {
     } catch (error) {}
   };
 
+  //publish message
+
   const handlePublishMessage = async () => {
     try {
       const response = await fetch(
@@ -168,6 +171,55 @@ export default function Home() {
 
   console.log(publishTopic, publishMessage);
 
+  //subscribe message
+
+  const handleSubscribeTopic = async () => {
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_MQTT_BACKEND_URL}/api/mqtt/subscribe`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            clientId,
+            topic: subscriptionTopic,
+            
+          }),
+        }
+      );
+
+      if (response.ok) {
+        notify(
+          toast.success("topic subscribed successfully", {
+            position: "top-center",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          })
+        );
+      } else {
+        notify(
+          toast.error("Failed to subscribe topic. Check your connection!!", {
+            position: "top-center",
+            autoClose: 1500,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          })
+        );
+      }
+    } catch (error) {}
+  };
+
   return (
     <>
       <ToastContainer />
@@ -206,6 +258,7 @@ export default function Home() {
                     <option>Select a protocol</option>
                     <option value="mqtt://">mqtt://</option>
                     <option value="mqtts://">mqtts://</option>
+                    <option value="ws://">ws://</option>
                   </select>
                 </div>
                 <div className="mb-3">
@@ -255,7 +308,7 @@ export default function Home() {
                   />
                 </div>
 
-                <KeywordField handleKeywords={setKeywords} />
+                {/* <KeywordField handleKeywords={setKeywords} /> */}
 
                 <div>
                   <button
@@ -279,6 +332,8 @@ export default function Home() {
             <div className="col-12 col-sm-7 mx-auto pt-3">
               <hr />
             </div>
+
+                  {/* Publish message */}
 
             <div className="col-12 col-sm-7 pt-3 mx-auto">
               <form onSubmit={handleFormSubmission}>
@@ -334,6 +389,39 @@ export default function Home() {
                 />
               </div>
             </div>
+
+            {/* subscribe message */}
+
+            <div className="col-12 col-sm-7 pt-3 mx-auto">
+              <form onSubmit={handleFormSubmission}>
+                <div className="mb-3">
+                  <label className="form-label">
+                    Subscribe Topic
+                  </label>
+                  <div className="form-floating">
+                    <input
+                      type="text"
+                      className="form-control"
+                      id="exampleInputEmail1s"
+                      placeholder="Topic"
+                      onChange={(e) => setSubscriptionTopic(e.target.value)}
+                    />
+                    <label htmlFor="exampleInputEmail1s">Topic</label>
+                  </div>
+                </div>
+
+
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  onClick={handleSubscribeTopic}
+                >
+                  Subscribe
+                </button>
+              </form>
+            </div>
+
+
           </div>
         </div>
       </div>
